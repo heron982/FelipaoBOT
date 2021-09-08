@@ -1,24 +1,44 @@
 const Discord = require('discord.js');
 const config = require('./config.json');
-const client = new Discord.Client();
+const bot = new Discord.Client();
 const { Database } = require('./Database.js')
+const { Channel } = require('./Channel.js');
 
-const db = new Database();
+const ch = new Channel();
+const serverID = '884519606218293310';
 
-client.on("guildMemberAdd", member => {
-  
+bot.on('ready', async function () {
+  const server = bot.guilds.cache.get(serverID); //servidor
+  const guild = await bot.guilds.fetch(serverID);
+  const everyoneRoleId = guild.roles.everyone.id;
+  const channel = await server.channels.create('recrutamento', {
+    permissionOverwrites: [
+      {
+        id: everyoneRoleId,
+        deny: ['READ_MESSAGE_HISTORY', 'ATTACH_FILES', 'EMBED_LINKS', 'USE_EXTERNAL_EMOJIS', 'MENTION_EVERYONE', 'ADD_REACTIONS']
+      }
+    ]
+  }) //criart canal de recrutamento e pegar o ID do mesmo
+    .then(channel => {
+      ch.setChannel(channel.id)
+    });
 });
 
-client.on('ready', async function () {
-  const server = client.guilds.cache.get('884519606218293310'); //servidor
-  const channel = server.channels.create('recrutamento')
-    .then(channel => console.log(channel.id));
-
-});
-
-client.on("message", function (message) {
+bot.on("message", async function (message) {
+  const recruitMessages = [];
   if (message.author.bot) return;
+  const server = bot.guilds.cache.get(serverID); //servidor
+  const recruitChannel = server.channels.cache.get(ch.getChannel());
+   
+  const currentChannel = message.channel.id;
+
+  if(currentChannel == recruitChannel) {
+    const db = new Database();
+    const usuariosDB = await db.getUsuarios();
+    console.log(usuariosDB);
+    recruitMessages.push({ user: message.author.username, content: message.content, id: message.author.id });
+  }
 
 });
 
-client.login(config.BOT_TOKEN);
+bot.login(config.BOT_TOKEN);
