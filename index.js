@@ -11,6 +11,8 @@ client.on("guildMemberAdd", member => {
 
 client.on('ready', async function () {
   const server = client.guilds.cache.get('884519606218293310'); //servidor
+  const channel = server.channels.create('recrutamento')
+    .then(channel => console.log(channel.id));
 
 });
 
