@@ -16,10 +16,17 @@ const canais = {
 }
 
 bot.on('guildMemberAdd', async member => {
+  const db = new Database();
+  const inserir = await db.insertUsuarioCollection({
+    id: member.user.id,
+    name: member.user.username,
+    nick: ''
+  });
 });
 
 bot.on('ready', async function () {
   //setup
+  const db = new Database();
   const server = bot.guilds.cache.get(serverID); //servidor
   const guild = await bot.guilds.fetch(serverID);
   server.members.cache.forEach(async member => {
