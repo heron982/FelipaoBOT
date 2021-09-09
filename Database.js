@@ -32,6 +32,23 @@ class Database {
         return usuario;
     }
 
+    async updateUser(user_id, set) {
+        const conn = await this.connect();
+        const database = conn.db("Felipao");
+        const usuario = await database.collection("usuarios")
+            .update(
+                { id: user_id },
+                {
+                    $set: {
+                        nick_steam: set
+                    }
+                }
+            )
+        conn.close();
+
+        return usuario;
+    }
+
     async getUsuarios() {
         const conn = await this.connect();
         const database = conn.db("Felipao") //selecionando banco

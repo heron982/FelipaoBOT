@@ -2,47 +2,48 @@ const Discord = require('discord.js');
 const config = require('./config.json');
 const bot = new Discord.Client();
 const { Database } = require('./Database.js')
+const Embed = require('./info.js');
 
 
 const serverID = '884519606218293310';
-const ch = {
-  id: String
+const canais = {
+  recrutamento: {
+    id: String
+  },
+  registro: {
+    id: String
+  }
 }
 
 bot.on('guildMemberAdd', async member => {
-  const db = new Database();
-  const inserir = await db.insertUsuarioCollection({
-    id: member.id,
-    name: member.user,
-    nick: ''
-  });
 });
 
 bot.on('ready', async function () {
-  
+  //setup
   const server = bot.guilds.cache.get(serverID); //servidor
   const guild = await bot.guilds.fetch(serverID);
-
-  // server.members.cache.forEach(async member => {
-  //   const inserir = await db.insertUsuarioCollection({
-  //     id: member.user.id,
-  //     name: member.user.username,
-  //     nick: ''
-  //   });
-  // });
+  server.members.cache.forEach(async member => {
+    const inserir = await db.insertUsuarioCollection({
+      id: member.user.id,
+      name: member.user.username,
+      nick: ''
+    });
+  }); //percorrer os usuarios
 
   const everyoneRoleId = guild.roles.everyone.id;
-  const channel = await server.channels.create('recrutamento', {
+  const channelRecrutamento = await server.channels.create('bot-recrutamento', {
     permissionOverwrites: [
       {
         id: everyoneRoleId,
         deny: ['READ_MESSAGE_HISTORY', 'ATTACH_FILES', 'EMBED_LINKS', 'USE_EXTERNAL_EMOJIS', 'MENTION_EVERYONE', 'ADD_REACTIONS']
       }
-    ]
+    ],
+    rateLimitPerUser: 1,
+    topic: 'Adicione aqui o seu nome de usuario da steam'
   }) //criart canal de recrutamento e pegar o ID do mesmo
-  .then(channel => {
-    ch.id = channel.id;
-  });
+  .then(channel => canais.recrutamento.id = channel.id);
+  const channelInfo = await server.channels.create('bot-registros', { topic: 'usuários cadastrados'})
+    .then(channel => canais.registro.id = channel.id);
 });
 
 bot.on("message", async function (message) {
@@ -50,8 +51,10 @@ bot.on("message", async function (message) {
   if (message.author.bot) return;
 
   const server = bot.guilds.cache.get(serverID); //servidor
+  const guild = await bot.guilds.fetch(serverID); // guild
 
-  const recruitChannel = server.channels.cache.get(ch.id);
+  const recruitChannel = server.channels.cache.get(canais.recrutamento.id);
+  const registryChannel = server.channels.cache.get(canais.registro.id);
   const currentChannel = message.channel.id;
 
   if(currentChannel == recruitChannel) {
@@ -59,14 +62,31 @@ bot.on("message", async function (message) {
     const usuariosDB = await db.getUsuarios();
     //verifico se o usuario já tem o nick da steam, se já tiver bloquear a mensagem. se não, cadastrar o nick e dar a role.
     const user = await db.findUser(message.author.id);
+    
     if(user[0].id === message.author.id) {
+
       if(user[0].nick_steam !== '') {
-        message.channel.send('Voce jà cadastrou seu nick pora!');
+
+        bot.users.cache.get(message.author.id).send('Voce jà cadastrou seu nick porra!')
+        message.delete(); //remover mensagem
       } else {
-        message.channel.send('Nick cadastrado com sucesso');
+
+        db.updateUser(message.author.id, message.content); //adicionar no banco //adicionar role membro avanti
+        let role = guild.roles.cache.find(role => role.name == 'Membro Avanti')
+        if(role !== '') {
+          //criar role básica
+          role = await guild.roles.create({
+            data:{
+              name: 'Membro Avanti',
+              color: 'GREEN'
+            },
+            reason: 'Membros que possuem a steam cadastrada'
+          });
+        }
+        message.member.roles.add(role);
+        registryChannel.send({ embed: Embed(message.author.username) });
       }
     }
-    console.log(user[0].id)
   }
 
 });
