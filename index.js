@@ -3,11 +3,13 @@ const Discord = require('discord.js');
 const bot = new Discord.Client();
 const { Database } = require('./Database.js')
 const Embed = require('./info.js');
+const env = require('./env.js');
 
 const User = require('./user.js');
 
 
-const serverID = '884519606218293310';
+const serverID = env.var.environment === 'production ' ? '868571911356055593': '884519606218293310';
+
 const canais = {
     recrutamento: {
         id: String
