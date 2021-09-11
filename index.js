@@ -95,7 +95,7 @@ bot.on("message", async function (message) {
 
                 db.updateUser(message.author.id, message.content); //adicionar no banco //adicionar role membro avanti
                 let role = guild.roles.cache.find(role => role.name == 'Membro Avanti')
-                if (role !== '') {
+                if (typeof role === undefined) {
                     //criar role básica
                     role = await guild.roles.create({
                         data: {
