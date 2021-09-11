@@ -1,10 +1,7 @@
-const config = require('./config.json');
 const { MongoClient } = require('mongodb');
+const env = require('./env.js');
 
 class Database {
-    constructor() {
-        this.uri = config.URI_DB;
-    }
 
     async insertUsuarioCollection(usuario) {
         const conn = await this.connect();
@@ -18,7 +15,7 @@ class Database {
         }
         const result = await usuarios.insertOne(usuario_template);
         conn.close();
-        console.log(`${result.insertCount} usuarios foram adicionados`);
+        console.log(`${usuario.name} usuario foi adicionado`);
     }
 
     async findUser(user_id) {
@@ -52,7 +49,7 @@ class Database {
     async getUsuarios() {
         const conn = await this.connect();
         const database = conn.db("Felipao") //selecionando banco
-        const usuarios = await database.collection("usuarios").find({});
+        const usuarios = await database.collection("usuarios").find({}).toArray();
         conn.close();
 
         return usuarios;
@@ -60,9 +57,10 @@ class Database {
 
     async connect() {
         try {
-            const client = new MongoClient(this.uri);
+
+            const client = new MongoClient(env.var.environment === 'production' ? env.var.uri : "mongodb://localhost:27017");
             const conn = await client.connect();
-        
+
             return conn;
         } catch (e) {
             console.log(e);
