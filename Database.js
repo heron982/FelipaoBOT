@@ -1,5 +1,5 @@
 const { MongoClient } = require('mongodb');
-const env = require('./env.js');
+require('dotenv').config();
 
 class Database {
 
@@ -58,7 +58,7 @@ class Database {
     async connect() {
         try {
 
-            const client = new MongoClient(env.var.environment === 'production' ? env.var.uri : "mongodb://localhost:27017");
+            const client = new MongoClient(process.env.NODE_ENV === 'production' ? process.env.URI : "mongodb://localhost:27017");
             const conn = await client.connect();
 
             return conn;

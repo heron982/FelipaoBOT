@@ -3,12 +3,13 @@ const Discord = require('discord.js');
 const bot = new Discord.Client();
 const { Database } = require('./Database.js')
 const Embed = require('./info.js');
-const env = require('./env.js');
+
+require('dotenv').config();
 
 const User = require('./user.js');
 
 
-const serverID = env.var.environment === 'production ' ? '868571911356055593': '884519606218293310';
+const serverID = process.env.NODE_ENV === 'production' ? '868571911356055593': '884519606218293310';
 
 const canais = {
     recrutamento: {
@@ -29,7 +30,7 @@ bot.on('guildMemberAdd', async member => {
 
 bot.on('ready', async function () {
     //setup
-
+    console.log(serverID, process.env.NODE_ENV)
     const server = bot.guilds.cache.get(serverID); //servidor
     const guild = await bot.guilds.fetch(serverID);
 
